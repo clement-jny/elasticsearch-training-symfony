@@ -8,16 +8,17 @@ final class Book
         public readonly string $title,
         public readonly string $description,
         public readonly string $price,
-    )
-    {
+        public readonly string $authorFullname
+    ) {
     }
 
-    public static function create(array $data): self
+    public static function create(array $source, array $highlight): self
     {
         return new self(
-            title: $data['title'],
-            description: $data['description'],
-            price: $data['price'],
+            title: $highlight['title'][0] ?? $source['title'],
+            description: $highlight['description'][0] ?? $source['description'],
+            price: $source['price'],
+            authorFullname: $highlight['author.fullname'][0] ?? $source['author']['fullname']
         );
     }
 }
