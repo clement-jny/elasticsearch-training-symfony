@@ -4,8 +4,8 @@ namespace App\Repository\Elastic;
 
 use App\Model\Elastic\Book;
 use Elastica\Client;
-use Elastica\Index;
 use Elastica\Result;
+use Elastica\Index;
 
 class BookRepository
 {
@@ -16,14 +16,41 @@ class BookRepository
         $this->index = $elastic->getIndex('library');
     }
 
+    private function createBook(Result $result): Book
+    {
+        return Book::create($result->getSource(), $result->getHighlights());
+    }
+
     /** @return list<Book> */
     public function findBooks(string $search): array
     {
         $query = [];
+        $results = [];
 
-        return array_map(
-            static fn(Result $result): Book => Book::create($result->getSource()),
-            $this->index->search($query)->getResults()
-        );
+        if ($search !== '') {
+            $query = [
+                'query' => [
+                    'multi_match' => [
+                        'query' => $search,
+                        'fields' => ['title^3', 'author.fullname^2', 'description^1']
+                    ]
+                ],
+                'highlight' => [
+                    'fields' => [
+                        'title' => new \stdClass(),
+                        'author.fullname' => new \stdClass(),
+                        'description' => new \stdClass(),
+                    ],
+                    'pre_tags' => ['<span style="background-color: #FFFF00">'],
+                    'post_tags' => ['</span>']
+                ]
+            ];
+
+            $results = $this->index->search($query)->getResults();
+        } else {
+            $results = $this->index->search($query)->getResults();
+        }
+
+        return array_map('self::createBook', $results);
     }
 }

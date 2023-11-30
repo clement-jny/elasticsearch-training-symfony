@@ -1,9 +1,17 @@
 {% extends 'base.html.twig' %}
 
-{% block content %}
-    {% for book in books %}
-        <h4>{{ book.title }}</h4>
-        <p>{{ book.description }}</p>
-        <strong>{{ book.price }} €</strong>
-    {% endfor %}
+{% block suggestions %}
+	{% for suggestion in suggestions %}
+		<p>{{ suggestion.text }}</p>
+	{% endfor %}
+{% endblock %}
+
+{% block books %}
+	{% for book in books %}
+		<h4>{{ book.title | raw }}
+			-
+			{{ book.authorFullname | raw }}</h4>
+		<p>{{ book.description | raw }}</p>
+		<strong>{{ book.price }}€</strong>
+	{% endfor %}
 {% endblock %}
